@@ -1,91 +1,76 @@
-import Image from 'next/image'
-import { Inter } from 'next/font/google'
-import styles from './page.module.css'
+"use client";
 
-const inter = Inter({ subsets: ['latin'] })
+import { Canvas } from "@/components/Canvas";
+import { HelpButton } from "@/components/HelpButton";
+import { SimpleColorPicker } from "@/components/SimpleColorPicker";
+import { socket } from "@/lib/socket";
+import { useRef, useState } from "react";
 
 export default function Home() {
-  return (
-    <main className={styles.main}>
-      <div className={styles.description}>
-        <p>
-          Get started by editing&nbsp;
-          <code className={styles.code}>src/app/page.tsx</code>
-        </p>
-        <div>
-          <a
-            href="https://vercel.com?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            By{' '}
-            <Image
-              src="/vercel.svg"
-              alt="Vercel Logo"
-              className={styles.vercelLogo}
-              width={100}
-              height={24}
-              priority
-            />
-          </a>
-        </div>
-      </div>
+	const [x, setX] = useState(0);
+	const [y, setY] = useState(0);
+	const [cX, setCX] = useState(0);
+	const [cY, setCY] = useState(0);
+	const [scale, setScale] = useState(1);
 
-      <div className={styles.center}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js Logo"
-          width={180}
-          height={37}
-          priority
-        />
-        <div className={styles.thirteen}>
-          <Image src="/thirteen.svg" alt="13" width={40} height={31} priority />
-        </div>
-      </div>
+	const colorRef = useRef<HTMLInputElement>(null);
 
-      <div className={styles.grid}>
-        <a
-          href="https://beta.nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={inter.className}>
-            Docs <span>-&gt;</span>
-          </h2>
-          <p className={inter.className}>
-            Find in-depth information about Next.js features and API.
-          </p>
-        </a>
+	return (
+		<>
+			<Canvas
+				onChange={(x, y, scale, canvasX, canvasY) => {
+					setX(x);
+					setY(y);
+					setCX(canvasX);
+					setCY(canvasY);
+					setScale(scale);
+				}}
+				onClick={(x, y, ref) => {
+					const canvas = ref.current!;
+					const context = canvas.getContext("2d")!;
 
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={inter.className}>
-            Templates <span>-&gt;</span>
-          </h2>
-          <p className={inter.className}>Explore the Next.js 13 playground.</p>
-        </a>
+					context.fillStyle = colorRef.current!.value;
+					context.fillRect(x, y, 1, 1);
 
-        <a
-          href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={inter.className}>
-            Deploy <span>-&gt;</span>
-          </h2>
-          <p className={inter.className}>
-            Instantly deploy your Next.js site to a shareable URL with Vercel.
-          </p>
-        </a>
-      </div>
-    </main>
-  )
+					socket.emit("set", {
+						x,
+						y,
+						color: colorRef.current!.value
+					});
+				}}
+				onCanvas={ref => {
+					socket.on(
+						"set",
+						(args: { x: number; y: number; color: string }) => {
+							const canvas = ref.current!;
+							const context = canvas.getContext("2d")!;
+							context.fillStyle = args.color;
+							context.fillRect(args.x, args.y, 1, 1);
+						}
+					);
+				}}
+			/>
+			<div className="pointer-events-none fixed inset-0 z-10 grid h-full grid-cols-[35px,1fr,200px,1fr,35px] grid-rows-[35px,1fr,35px] p-2 [&>*]:pointer-events-auto">
+				<div className="pill col-start-3 row-start-1">
+					({x}, {y}) {scale.toFixed(2)}x
+				</div>
+				<button className="icon-button col-start-1 row-start-1">
+					<SimpleColorPicker ref={colorRef} />
+				</button>
+				{/* <div className="pill col-start-3 row-start-3">0:00</div> */}
+				<HelpButton />
+			</div>
+			<div className="pointer-events-none fixed inset-0 h-full overflow-hidden">
+				<div
+					className="absolute opacity-50"
+					style={{
+						backgroundColor: colorRef.current?.value,
+						width: scale,
+						height: scale,
+						left: x * scale + cX,
+						top: y * scale + cY
+					}}></div>
+			</div>
+		</>
+	);
 }

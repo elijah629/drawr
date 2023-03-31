@@ -1,22 +1,42 @@
 {
-  "name": "drawr",
-  "version": "0.1.0",
-  "private": true,
-  "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "lint": "next lint"
-  },
-  "dependencies": {
-    "@types/node": "18.15.10",
-    "@types/react": "18.0.30",
-    "@types/react-dom": "18.0.11",
-    "eslint": "8.36.0",
-    "eslint-config-next": "13.2.4",
-    "next": "13.2.4",
-    "react": "18.2.0",
-    "react-dom": "18.2.0",
-    "typescript": "5.0.2"
-  }
+	"name": "drawr",
+	"version": "0.1.0",
+	"private": true,
+	"scripts": {
+		"dev": "node server.mjs",
+		"build": "next build",
+		"start": "NODE_ENV=PRODUCTION node server.mjs",
+		"lint:next": "next lint",
+		"lint:prettier": "prettier . --write",
+		"lint": "concurrently \"npm:lint:*\""
+	},
+	"dependencies": {
+		"@headlessui/react": "^1.7.13",
+		"@murkrage/next-pwa": "^5.7.1",
+		"bufferutil": "^4.0.7",
+		"chalk": "^5.2.0",
+		"next": "13.2.4",
+		"png-img": "file:png-img",
+		"react": "18.2.0",
+		"react-dom": "18.2.0",
+		"react-zoom-pan-pinch": "^3.0.6",
+		"socket.io": "^4.6.1",
+		"socket.io-client": "^4.6.1",
+		"utf-8-validate": "^5.0.10"
+	},
+	"devDependencies": {
+		"@types/node": "^18.15.11",
+		"@types/react": "^18.0.31",
+		"@types/react-dom": "^18.0.11",
+		"autoprefixer": "^10.4.14",
+		"concurrently": "^8.0.1",
+		"eslint": "^8.37.0",
+		"eslint-config-next": "^13.2.4",
+		"postcss": "^8.4.21",
+		"prettier": "^2.8.7",
+		"prettier-plugin-organize-imports": "^3.2.2",
+		"prettier-plugin-tailwindcss": "^0.2.6",
+		"tailwindcss": "^3.3.1",
+		"typescript": "^5.0.3"
+	}
 }
