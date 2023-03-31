@@ -116,8 +116,6 @@ export function Canvas(props: CanvasProps): JSX.Element {
 		image.addEventListener("load", onLoad);
 		image.src = "./image.png";
 
-		props.onCanvas?.(canvasRef);
-
 		return () => {
 			image.removeEventListener("load", onLoad);
 		};
@@ -133,6 +131,10 @@ export function Canvas(props: CanvasProps): JSX.Element {
 			state.positionY
 		);
 	}, [props, position, scale]);
+
+	useEffect(() => {
+		props.onCanvas?.(canvasRef);
+	}, [props]);
 
 	useEffect(() => {
 		const { width, height } = canvasRef.current!;
