@@ -1,23 +1,30 @@
+import express from "express";
+import { createServer } from "node:http";
+
 import next from "next";
-import http from "node:http";
 import { Server } from "socket.io";
 import { parse } from "url";
 
 import fs from "node:fs";
 import { PngImg as PNG } from "png-img";
 
-import chalk from "chalk";
-
 const dev = process.env.NODE_ENV !== "production";
 const hostname = "localhost";
 const port = 3000;
 
-const app = next({ dev, hostname, port });
-const handle = app.getRequestHandler();
+const nextApp = next({ dev, hostname, port });
+const handle = nextApp.getRequestHandler();
 
-const image = new PNG(fs.readFileSync("public/image.png"));
+const image = new PNG(fs.readFileSync("nostatic/image.png"));
 
-const server = http.createServer(async (req, res) => {
+const app = express();
+const server = createServer(app);
+
+const io = new Server(server);
+
+app.use(express.static("nostatic"));
+
+app.use(async (req, res) => {
 	try {
 		await handle(req, res, parse(req.url, true));
 	} catch (error) {
@@ -27,8 +34,6 @@ const server = http.createServer(async (req, res) => {
 	}
 });
 
-const io = new Server(server);
-
 io.on("connection", socket => {
 	socket.on("set", args => {
 		if (!args || !args.x || !args.y || !args.color) {
@@ -37,7 +42,7 @@ io.on("connection", socket => {
 
 		io.sockets.emit("set", args);
 		image.set(args.x, args.y, args.color);
-		image.save("public/image.png");
+		image.save("nostatic/image.png");
 	});
 });
 
@@ -46,12 +51,10 @@ server.once("error", error => {
 	process.exit(1);
 });
 
-app.prepare().then(() =>
-	server.listen(3000, () => {
+nextApp.prepare().then(() => {
+	app.listen(3000, () => {
 		console.log(
-			`${chalk.green(
-				"ready"
-			)} - started custom server on http://${hostname}:${port}`
+			`ready - started custom server on http://${hostname}:${port}`
 		);
-	})
-);
+	});
+});
