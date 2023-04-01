@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["../prettier.config.js"],
+  "sourcesContent": ["module.exports = {\n\tarrowParens: \"avoid\",\n\ttabWidth: 4,\n\tuseTabs: true,\n\ttrailingComma: \"none\",\n\tsingleAttributePerLine: true,\n\tbracketSameLine: true,\n\tquoteProps: \"consistent\",\n\tplugins: [require(\"prettier-plugin-tailwindcss\")]\n};\n"],
+  "mappings": ";AAAA,OAAO,UAAU;AAAA,EAChB,aAAa;AAAA,EACb,UAAU;AAAA,EACV,SAAS;AAAA,EACT,eAAe;AAAA,EACf,wBAAwB;AAAA,EACxB,iBAAiB;AAAA,EACjB,YAAY;AAAA,EACZ,SAAS,CAAC,QAAQ,6BAA6B,CAAC;AACjD;",
+  "names": []
+}

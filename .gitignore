@@ -40,3 +40,5 @@ next-env.d.ts
 /nostatic/sw.js.map
 /nostatic/workbox-*.js
 /nostatic/workbox-*.js.map
+
+.*

@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["../../../src/lib/socket.ts"],
+  "sourcesContent": ["import io from \"socket.io-client\";\n\nexport const socket = io();\n"],
+  "mappings": ";;;;;;;;;;;;;;;;;;;;;;;;AAAA;AAAA;AAAA;AAAA;AAAA;AAAA,oBAAe;AAER,MAAM,aAAS,cAAAA,SAAG;",
+  "names": ["io"]
+}

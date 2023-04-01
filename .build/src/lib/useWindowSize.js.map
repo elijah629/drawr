@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["../../../src/lib/useWindowSize.ts"],
+  "sourcesContent": ["import { useEffect, useState } from \"react\";\n\nexport function useWindowSize() {\n\tconst [size, setSize] = useState([0, 0]);\n\tuseEffect(() => {\n\t\tfunction updateSize() {\n\t\t\tsetSize([window.innerWidth, window.innerHeight]);\n\t\t}\n\t\twindow.addEventListener(\"resize\", updateSize);\n\t\tupdateSize();\n\t\treturn () => window.removeEventListener(\"resize\", updateSize);\n\t}, []);\n\treturn size;\n}\n"],
+  "mappings": ";;;;;;;;;;;;;;;;;;AAAA;AAAA;AAAA;AAAA;AAAA;AAAA,mBAAoC;AAE7B,SAAS,gBAAgB;AAC/B,QAAM,CAAC,MAAM,OAAO,QAAI,uBAAS,CAAC,GAAG,CAAC,CAAC;AACvC,8BAAU,MAAM;AACf,aAAS,aAAa;AACrB,cAAQ,CAAC,OAAO,YAAY,OAAO,WAAW,CAAC;AAAA,IAChD;AACA,WAAO,iBAAiB,UAAU,UAAU;AAC5C,eAAW;AACX,WAAO,MAAM,OAAO,oBAAoB,UAAU,UAAU;AAAA,EAC7D,GAAG,CAAC,CAAC;AACL,SAAO;AACR;",
+  "names": []
+}

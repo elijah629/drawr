@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["../tailwind.config.js"],
+  "sourcesContent": ["/** @type {import('tailwindcss').Config} */\nmodule.exports = {\n\tcontent: [\"./src/**/*.{js,ts,jsx,tsx}\"],\n\ttheme: {\n\t\textend: {\n\t\t\tborderRadius: {\n\t\t\t\tmd: \"5px\"\n\t\t\t},\n\t\t\tborderColor: {\n\t\t\t\tDEFAULT: \"#000\"\n\t\t\t},\n\t\t\tboxShadow: {\n\t\t\t\tsm: \"3px 3px #000\",\n\t\t\t\tDEFAULT: \"5px 5px #000\",\n\t\t\t\tmd: \"10px 10px #000\"\n\t\t\t}\n\t\t}\n\t},\n\tplugins: []\n};\n"],
+  "mappings": ";AACA,OAAO,UAAU;AAAA,EAChB,SAAS,CAAC,4BAA4B;AAAA,EACtC,OAAO;AAAA,IACN,QAAQ;AAAA,MACP,cAAc;AAAA,QACb,IAAI;AAAA,MACL;AAAA,MACA,aAAa;AAAA,QACZ,SAAS;AAAA,MACV;AAAA,MACA,WAAW;AAAA,QACV,IAAI;AAAA,QACJ,SAAS;AAAA,QACT,IAAI;AAAA,MACL;AAAA,IACD;AAAA,EACD;AAAA,EACA,SAAS,CAAC;AACX;",
+  "names": []
+}

@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["../postcss.config.js"],
+  "sourcesContent": ["module.exports = {\n\tplugins: {\n\t\ttailwindcss: {},\n\t\tautoprefixer: {}\n\t}\n};\n"],
+  "mappings": ";AAAA,OAAO,UAAU;AAAA,EAChB,SAAS;AAAA,IACR,aAAa,CAAC;AAAA,IACd,cAAc,CAAC;AAAA,EAChB;AACD;",
+  "names": []
+}
