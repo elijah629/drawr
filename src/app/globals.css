@@ -12,10 +12,8 @@
 	.pill {
 		@apply inline-flex h-8 items-center justify-center rounded-full border-2 bg-white shadow;
 	}
-	.color-round::-webkit-color-swatch {
-		@apply rounded-full border-0;
-	}
-	.color-round {
-		padding-block: 0;
-	}
+}
+
+* {
+	user-select: none;
 }
