@@ -182,6 +182,8 @@ export const Canvas = forwardRef(
 	}
 );
 
+Canvas.displayName = "Canvas";
+
 function screenToCanvas(
 	x: number,
 	y: number,
