@@ -146,9 +146,11 @@ export const Canvas = forwardRef(
 		useEffect(() => {
 			const { width, height } = canvas.current!;
 			const minScale =
-				Math.min(windowWidth / width, windowHeight / height) / 1.5;
+				Math.max(1, Math.min(windowWidth / width, windowHeight / height) / 1.5);
+
+				console.log(minScale);
 			transformRef.current?.centerView(minScale);
-		}, [canvas, isReady, windowWidth, windowHeight]);
+			}, [canvas, isReady, windowWidth, windowHeight]);
 
 		return (
 			<TransformWrapper
