@@ -3,8 +3,8 @@
 import { Canvas } from "@/components/Canvas";
 import { HelpButton } from "@/components/HelpButton";
 import { SimpleColorPicker } from "@/components/SimpleColorPicker";
-import { socket } from "@/lib/socket";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import "./page.css";
 
 export default function Home() {
 	const [x, setX] = useState(0);
@@ -13,11 +13,25 @@ export default function Home() {
 	const [cY, setCY] = useState(0);
 	const [scale, setScale] = useState(1);
 
+	const canvasRef = useRef<HTMLCanvasElement>(null);
 	const colorRef = useRef<HTMLInputElement>(null);
+
+	useEffect(() => {
+		const source = new EventSource("/pixel/events");
+		source.addEventListener("message", ev => {
+			const data = JSON.parse(ev.data);
+
+			const canvas = canvasRef.current!;
+			const context = canvas.getContext("2d")!;
+			context.fillStyle = `rgb(${data.color.r}, ${data.color.g}, ${data.color.b})`;
+			context.fillRect(data.x, data.y, 1, 1);
+		});
+	}, []);
 
 	return (
 		<>
 			<Canvas
+				ref={canvasRef}
 				onChange={(x, y, scale, canvasX, canvasY) => {
 					setX(x);
 					setY(y);
@@ -25,29 +39,20 @@ export default function Home() {
 					setCY(canvasY);
 					setScale(scale);
 				}}
-				onClick={(x, y, ref) => {
-					const canvas = ref.current!;
-					const context = canvas.getContext("2d")!;
+				onClick={(x, y) => {
+					const [r, g, b] = colorRef
+						.current!.value.substring(1)
+						.match(/.{2}/g)!
+						.map(x => parseInt(x, 16));
 
-					context.fillStyle = colorRef.current!.value;
-					context.fillRect(x, y, 1, 1);
-
-					socket.emit("set", {
-						x,
-						y,
-						color: colorRef.current!.value
+					fetch("/pixel", {
+						method: "POST",
+						headers: {
+							"Accept": "application/json",
+							"Content-Type": "application/json"
+						},
+						body: JSON.stringify({ x, y, color: { r, g, b } })
 					});
-				}}
-				onCanvas={ref => {
-					socket.on(
-						"set",
-						(args: { x: number; y: number; color: string }) => {
-							const canvas = ref.current!;
-							const context = canvas.getContext("2d")!;
-							context.fillStyle = args.color;
-							context.fillRect(args.x, args.y, 1, 1);
-						}
-					);
 				}}
 			/>
 			<div className="pointer-events-none fixed inset-0 z-10 grid h-full grid-cols-[35px,1fr,200px,1fr,35px] grid-rows-[35px,1fr,35px] p-2 [&>*]:pointer-events-auto">
@@ -57,7 +62,6 @@ export default function Home() {
 				<button className="icon-button col-start-1 row-start-1">
 					<SimpleColorPicker ref={colorRef} />
 				</button>
-				{/* <div className="pill col-start-3 row-start-3">0:00</div> */}
 				<HelpButton />
 			</div>
 			<div className="pointer-events-none fixed inset-0 h-full overflow-hidden">

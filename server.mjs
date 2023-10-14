@@ -1,63 +1,106 @@
 import express from "express";
-import { createServer } from "node:http";
+import { Server } from "http";
 
 import next from "next";
-import { Server } from "socket.io";
-import { parse } from "url";
+import path from "path";
+import { fileURLToPath, parse } from "url";
 
-import fs from "node:fs";
-import { PngImg as PNG } from "png-img";
+import { PNG } from "pngjs";
+import fs from "fs";
 
 const dev = process.env.NODE_ENV !== "production";
 const hostname = "localhost";
 const port = 3000;
 
+const app = express();
+const server = Server(app);
 const nextApp = next({ dev, hostname, port });
 const handle = nextApp.getRequestHandler();
 
-const image = new PNG(fs.readFileSync("nostatic/canvas.png"));
-
-const app = express();
-const server = createServer(app);
-
-const io = new Server(server);
-
-app.use(express.static("nostatic"));
-
-app.use(async (req, res) => {
-	try {
-		await handle(req, res, parse(req.url, true));
-	} catch (error) {
-		console.error(error);
-		res.statusCode = 500;
-		res.end("Internal Server Error");
-	}
-});
-
-io.on("connection", socket => {
-	const date = new Date();
-	console.log(`conn  - ${socket.handshake.address} [${date.getHours().toString().padStart(2, "0")}:${date.getMinutes().toString().padStart(2, "0")}:${date.getSeconds().toString().padStart(2, "0")}]`)
-	socket.on("set", args => {
-		console.log(`set   - ${socket.handshake.address} (${args.x}, ${args.y}) ${args.color}`);
-		if (!args || !args.x || !args.y || !args.color || typeof args.x !== "number" || typeof args.y !== "number" || typeof args.color !== "string") {
-			return;
-		}
-
-		io.sockets.emit("set", args);
-		image.set(args.x, args.y, args.color);
-		image.save("nostatic/canvas.png");
-	});
-	socket.on("disconnect", () => {
-		console.log(`dconn - ${socket.handshake.address}`)
-	});
-});
-
-server.once("error", error => {
-	console.error(error);
-	process.exit(1);
-});
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 nextApp.prepare().then(() => {
+	app.use(express.json());
+
+	let id = 0;
+
+	// ID to write function for SSE
+	const clients = {};
+
+	app.get("*", async (req, res) => {
+		try {
+			// Subscribe to pixel placement events
+			if (req.url === "/pixel/events") {
+				res.set({
+					"Cache-Control": "no-cache",
+					"Content-Type": "text/event-stream",
+					"Connection": "keep-alive"
+				});
+				res.flushHeaders();
+
+				// Retry: 10s if conn is lost
+				res.write("retry: 10000\n\n");
+
+				const client_id = ++id;
+
+				clients[client_id] = res.write.bind(res);
+
+				req.on("close", () => {
+					delete clients[client_id];
+				});
+			} else if (req.url === "/image.png") {
+				res.sendFile(path.join(__dirname, "image.png"));
+			} else {
+				await handle(req, res, parse(req.url, true));
+			}
+		} catch (error) {
+			console.error(error);
+			res.statusCode = 500;
+			res.end("Internal Server Error");
+		}
+	});
+
+	function i(x) {
+		return typeof x === "number";
+	}
+	// Set a pixel
+	app.post("/pixel", async (req, res) => {
+		const x = req.body;
+		if (
+			i(x.x) /* TODO: Bounds check */ &&
+			i(x.y) &&
+			i(x.color.r) &&
+			i(x.color.g) &&
+			i(x.color.b)
+		) {
+			for (id in clients) {
+				clients[id](
+					`data: ${JSON.stringify({
+						x: x.x,
+						y: x.y,
+						color: { r: x.color.r, g: x.color.g, b: x.color.b }
+					})}\n\n`
+				);
+			}
+
+			fs.createReadStream("image.png")
+				.pipe(
+					new PNG({
+						filterType: 4
+					})
+				)
+				.on("parsed", function () {
+					const idx = (x.y * this.width + x.x) * 4;
+					this.data[idx] = x.color.r;
+					this.data[idx + 1] = x.color.g;
+					this.data[idx + 2] = x.color.b;
+
+					this.pack().pipe(fs.createWriteStream("image.png"));
+				});
+		}
+		res.end();
+	});
+
 	server.listen(3000, () => {
 		console.log(
 			`ready - started custom server on http://${hostname}:${port}`

@@ -1,5 +1,12 @@
 import { useWindowSize } from "@/lib/useWindowSize";
-import { RefObject, useEffect, useRef, useState } from "react";
+import {
+	ForwardedRef,
+	RefObject,
+	forwardRef,
+	useEffect,
+	useRef,
+	useState
+} from "react";
 import {
 	ReactZoomPanPinchContentRef,
 	ReactZoomPanPinchState,
@@ -18,161 +25,162 @@ type CanvasProps = {
 		canvasX: number,
 		canvasY: number
 	) => void;
-	onClick?: (x: number, y: number, ref: RefObject<HTMLCanvasElement>) => void;
-	onCanvas?: (ref: RefObject<HTMLCanvasElement>) => void;
+	onClick?: (x: number, y: number) => void;
 };
 
-export function Canvas(props: CanvasProps): JSX.Element {
-	const transformRef = useRef<ReactZoomPanPinchContentRef>(null);
-	const canvasRef = useRef<HTMLCanvasElement>(null);
+export const Canvas = forwardRef(
+	(props: CanvasProps, ref: ForwardedRef<HTMLCanvasElement>) => {
+		const transformRef = useRef<ReactZoomPanPinchContentRef>(null);
+		const innerRef = useRef<HTMLCanvasElement>(null);
+		const canvas = (ref || innerRef) as RefObject<HTMLCanvasElement>;
 
-	const [isReady, setIsReady] = useState(false);
-	const [windowWidth, windowHeight] = useWindowSize();
-	const [position, setPosition] = useState([0, 0]);
-	const [scale, setScale] = useState(0);
+		const [isReady, setIsReady] = useState(false);
+		const [windowWidth, windowHeight] = useWindowSize();
+		const [position, setPosition] = useState([0, 0]);
+		const [scale, setScale] = useState(0);
 
-	useEffect(() => {
-		const canvas = canvasRef.current!;
-		const hasMouse = matchMedia("(pointer:fine)").matches;
+		useEffect(() => {
+			const c = canvas.current!;
+			const hasMouse = matchMedia("(pointer:fine)").matches;
 
-		const onChangeCallbacks =
-			transformRef.current?.instance.onChangeCallbacks;
+			const onChangeCallbacks =
+				transformRef.current?.instance.onChangeCallbacks;
 
-		if (hasMouse) {
-			const onMouseMove = ({ pageX, pageY }: MouseEvent) => {
-				const state =
-					transformRef.current?.instance.getContext().state!;
+			if (hasMouse) {
+				const onMouseMove = ({ pageX, pageY }: MouseEvent) => {
+					const state =
+						transformRef.current?.instance.getContext().state!;
 
-				const { x, y } = screenToCanvas(
-					pageX,
-					pageY,
-					canvas.width,
-					canvas.height,
-					state
-				);
+					const { x, y } = screenToCanvas(
+						pageX,
+						pageY,
+						c.width,
+						c.height,
+						state
+					);
 
-				setPosition([x, y]);
+					setPosition([x, y]);
+				};
+
+				const onChange = (context: ReactZoomPanPinchContentRef) => {
+					const state = context.instance.getContext().state!;
+					setScale(state.scale);
+				};
+
+				c.addEventListener("mousemove", onMouseMove);
+				onChangeCallbacks?.add(onChange);
+
+				return () => {
+					c.removeEventListener("mousemove", onMouseMove);
+					onChangeCallbacks?.delete(onChange);
+				};
+			} else {
+				const onChange = (context: ReactZoomPanPinchContentRef) => {
+					const state = context.instance.getContext().state!;
+
+					const rect = canvas.current!.getBoundingClientRect();
+
+					const cx = clamp(
+						windowWidth / 2,
+						rect.x,
+						rect.x + rect.width
+					);
+					const cy = clamp(
+						windowHeight / 2,
+						rect.y,
+						rect.y + rect.height
+					);
+
+					const { x, y } = screenToCanvas(
+						cx,
+						cy,
+						canvas.current!.width,
+						canvas.current!.height,
+						state
+					);
+					setPosition([x, y]);
+					setScale(state.scale);
+				};
+
+				onChangeCallbacks?.add(onChange);
+
+				return () => {
+					onChangeCallbacks?.delete(onChange);
+				};
+			}
+		}, [canvas, windowHeight, windowWidth]);
+
+		useEffect(() => {
+			const image = new Image();
+			const context = canvas.current!.getContext("2d")!;
+			const onLoad = () => {
+				const { width, height } = image;
+				canvas.current!.width = width;
+				canvas.current!.height = height;
+
+				context.imageSmoothingEnabled = false;
+				context.drawImage(image, 0, 0);
+
+				setIsReady(true);
 			};
 
-			const onChange = (context: ReactZoomPanPinchContentRef) => {
-				const state = context.instance.getContext().state!;
-				setScale(state.scale);
-			};
-
-			canvas.addEventListener("mousemove", onMouseMove);
-			onChangeCallbacks?.add(onChange);
+			image.addEventListener("load", onLoad);
+			image.src = "./image.png";
 
 			return () => {
-				canvas.removeEventListener("mousemove", onMouseMove);
-				onChangeCallbacks?.delete(onChange);
+				image.removeEventListener("load", onLoad);
 			};
-		} else {
-			const onChange = (context: ReactZoomPanPinchContentRef) => {
-				const state = context.instance.getContext().state!;
+		}, [canvas]);
 
-				const rect = canvas.getBoundingClientRect();
+		useEffect(() => {
+			const state = transformRef.current?.instance.getContext().state!;
+			props.onChange?.(
+				position[0],
+				position[1],
+				scale,
+				state.positionX,
+				state.positionY
+			);
+		}, [props, position, scale]);
 
-				const cx = clamp(windowWidth / 2, rect.x, rect.x + rect.width);
-				const cy = clamp(
-					windowHeight / 2,
-					rect.y,
-					rect.y + rect.height
-				);
+		useEffect(() => {
+			const { width, height } = canvas.current!;
+			const minScale =
+				Math.min(windowWidth / width, windowHeight / height) / 1.5;
+			transformRef.current?.centerView(minScale);
+		}, [canvas, isReady, windowWidth, windowHeight]);
 
-				const { x, y } = screenToCanvas(
-					cx,
-					cy,
-					canvas.width,
-					canvas.height,
-					state
-				);
-				setPosition([x, y]);
-				setScale(state.scale);
-			};
-
-			onChangeCallbacks?.add(onChange);
-
-			return () => {
-				onChangeCallbacks?.delete(onChange);
-			};
-		}
-	}, [windowHeight, windowWidth]);
-
-	useEffect(() => {
-		const image = new Image();
-		const canvas = canvasRef.current!;
-		const context = canvas.getContext("2d")!;
-		const onLoad = () => {
-			const { width, height } = image;
-			canvas.width = width;
-			canvas.height = height;
-
-			context.imageSmoothingEnabled = false;
-			context.drawImage(image, 0, 0);
-
-			setIsReady(true);
-		};
-
-		image.addEventListener("load", onLoad);
-		image.src = "./image.png";
-
-		return () => {
-			image.removeEventListener("load", onLoad);
-		};
-	}, []);
-
-	useEffect(() => {
-		const state = transformRef.current?.instance.getContext().state!;
-		props.onChange?.(
-			position[0],
-			position[1],
-			scale,
-			state.positionX,
-			state.positionY
+		return (
+			<TransformWrapper
+				ref={transformRef}
+				minScale={1}
+				maxScale={50}
+				limitToBounds={false}
+				velocityAnimation={{
+					disabled: true
+				}}
+				doubleClick={{
+					disabled: true
+				}}
+				zoomAnimation={{
+					disabled: true
+				}}>
+				<TransformComponent
+					wrapperClass={`!h-full !w-full ${isReady ? "" : "hidden"}`}>
+					<div
+						className="-z-10 will-change-auto"
+						onClick={() => {
+							props.onClick?.(position[0], position[1]);
+						}}>
+						<canvas
+							style={{ imageRendering: "pixelated" }}
+							ref={ref}></canvas>
+					</div>
+				</TransformComponent>
+			</TransformWrapper>
 		);
-	}, [props, position, scale]);
-
-	useEffect(() => {
-		props.onCanvas?.(canvasRef);
-	}, [props]);
-
-	useEffect(() => {
-		const { width, height } = canvasRef.current!;
-		const minScale =
-			Math.min(windowWidth / width, windowHeight / height) / 1.5;
-		transformRef.current?.centerView(minScale);
-	}, [isReady, windowWidth, windowHeight]);
-
-	return (
-		<TransformWrapper
-			ref={transformRef}
-			minScale={1}
-			maxScale={50}
-			limitToBounds={false}
-			velocityAnimation={{
-				disabled: true
-			}}
-			doubleClick={{
-				disabled: true
-			}}
-			zoomAnimation={{
-				disabled: true
-			}}>
-			<TransformComponent
-				wrapperClass={`!h-full !w-full ${isReady ? "" : "hidden"}`}>
-				<div
-					className="-z-10 will-change-auto"
-					onClick={() => {
-						props.onClick?.(position[0], position[1], canvasRef);
-					}}>
-					<canvas
-						style={{ imageRendering: "pixelated" }}
-						ref={canvasRef}></canvas>
-				</div>
-			</TransformComponent>
-		</TransformWrapper>
-	);
-}
+	}
+);
 
 function screenToCanvas(
 	x: number,

@@ -18,14 +18,7 @@ export default function RootLayout({
 			lang="en"
 			className="h-full">
 			<body className={`h-full ${jetbrains_mono.className}`}>
-				<main
-					className="h-full"
-					style={{
-						background:
-							"linear-gradient(0deg, #171717 0%, #3a3a3a 30%, #3a3a3a 70%, #171717 100%)"
-					}}>
-					{children}
-				</main>
+				{children}
 			</body>
 		</html>
 	);

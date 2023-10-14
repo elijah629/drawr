@@ -1,42 +1,39 @@
 {
-	"name": "drawr",
-	"version": "0.1.0",
-	"private": true,
-	"scripts": {
-		"dev": "node server.mjs",
-		"build": "next build",
-		"start": "NODE_ENV=production node server.mjs",
-		"lint:next": "next lint",
-		"lint:prettier": "prettier . --write",
-		"lint": "concurrently \"npm:lint:*\""
-	},
-	"dependencies": {
-		"@headlessui/react": "^1.7.15",
-		"bufferutil": "^4.0.7",
-		"express": "^4.18.2",
-		"next": "^13.4.10",
-		"png-img": "^5.0.1",
-		"react": "18.2.0",
-		"react-dom": "18.2.0",
-		"react-zoom-pan-pinch": "^3.1.0",
-		"socket.io": "^4.7.1",
-		"socket.io-client": "^4.7.1",
-		"utf-8-validate": "^6.0.3"
-	},
-	"devDependencies": {
-		"@types/express": "^4.17.17",
-		"@types/node": "^20.4.2",
-		"@types/react": "^18.2.15",
-		"@types/react-dom": "^18.2.7",
-		"autoprefixer": "^10.4.14",
-		"concurrently": "^8.2.0",
-		"eslint": "^8.45.0",
-		"eslint-config-next": "^13.4.10",
-		"postcss": "^8.4.26",
-		"prettier": "^3.0.0",
-		"prettier-plugin-organize-imports": "^3.2.3",
-		"prettier-plugin-tailwindcss": "^0.4.1",
-		"tailwindcss": "^3.3.3",
-		"typescript": "^5.1.6"
-	}
+  "name": "drawr",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "node server.mjs",
+    "build": "next build",
+    "start": "NODE_ENV=production node server.mjs",
+    "lint:next": "next lint",
+    "lint:prettier": "prettier . --write",
+    "lint": "concurrently \"npm:lint:*\""
+  },
+  "dependencies": {
+    "@headlessui/react": "^1.7.15",
+    "express": "^4.18.2",
+    "next": "^13.5.4",
+    "pngjs": "^7.0.0",
+    "react": "18.2.0",
+    "react-dom": "18.2.0",
+    "react-zoom-pan-pinch": "3.1.1",
+    "sharp": "^0.32.6"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.17",
+    "@types/node": "^20.4.2",
+    "@types/react": "^18.2.15",
+    "@types/react-dom": "^18.2.7",
+    "autoprefixer": "^10.4.14",
+    "concurrently": "^8.2.0",
+    "eslint": "^8.45.0",
+    "eslint-config-next": "^13.4.10",
+    "postcss": "^8.4.26",
+    "prettier": "^3.0.0",
+    "prettier-plugin-organize-imports": "^3.2.3",
+    "prettier-plugin-tailwindcss": "^0.4.1",
+    "tailwindcss": "^3.3.3",
+    "typescript": "^5.1.6"
+  }
 }
